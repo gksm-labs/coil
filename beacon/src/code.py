@@ -1,20 +1,46 @@
-import digitalio
-import board
-import busio
-import adafruit_rfm9x
 import time
 
-spi = busio.SPI(board.GP18, MOSI=board.GP19, MISO=board.GP16)
-cs = digitalio.DigitalInOut(board.GP17)
-reset = digitalio.DigitalInOut(board.GP20)
+import config
+import hardware
+import protocol
 
-rfm = adafruit_rfm9x.RFM9x(spi, cs, reset, 869.525)
-rfm.tx_power = 20
+rfm = hardware.init_lora()
+mcp = hardware.init_can()
+uart = hardware.init_uart()
 
-print("TX start")
+uart_buffer = bytearray()
+echook_data = {}
+last_lora_tx = time.monotonic()
 
 while True:
-    rfm.send(bytes("hello", "utf-8"))
-    print("jo")
-    time.sleep(1)
+    if uart.in_waiting > 0:
+        uart_buffer.extend(uart.read(uart.in_waiting))
 
+        while b"{" in uart_buffer:
+            start_idx = uart_buffer.index(b"{")
+            uart_buffer = uart_buffer[start_idx:]
+
+            if len(uart_buffer) < 5:
+                break
+
+            if uart_buffer[4] == 125:
+                packet = uart_buffer[:5]
+                ident, value = protocol.parse_packet(packet)
+                echook_data[ident] = value
+                if config.DEBUG:
+                    print(f"echook: id='{ident}', value={value:.2f}")
+
+                if mcp is not None:
+                    protocol.send_to_can(mcp, ident, value)
+
+                uart_buffer = uart_buffer[5:]
+            else:
+                uart_buffer = uart_buffer[1:]
+
+    if time.monotonic() - last_lora_tx >= config.LORA_INTERVAL:
+        if rfm is not None:
+            protocol.send_lora(rfm, echook_data)
+
+        last_lora_tx = time.monotonic()
+
+    time.sleep(0.01)
