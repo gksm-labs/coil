@@ -1,0 +1,12 @@
+import board
+
+# LoRa pins (SPI0)
+LORA_SCK = board.GP18
+LORA_MOSI = board.GP19
+LORA_MISO = board.GP16
+LORA_CS = board.GP17
+LORA_RESET = board.GP20
+LORA_FREQ = 869.525
+LORA_POWER = 20
+
+LORA_TIMEOUT = 5.0

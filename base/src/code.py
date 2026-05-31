@@ -1,25 +1,24 @@
-import board
-import busio
-import digitalio
-import adafruit_rfm9x
+import time
 
-spi = busio.SPI(board.GP18, MOSI=board.GP19, MISO=board.GP16)
-cs = digitalio.DigitalInOut(board.GP17)
-reset = digitalio.DigitalInOut(board.GP20)
+import config
+import hardware
 
-rfm = adafruit_rfm9x.RFM9x(spi, cs, reset, 869.525)
-
-print("RX start")
+rfm = hardware.init_lora()
 
 while True:
-    packet = rfm.receive(timeout=5.0)
-    if packet is None:
-        print("nothing...")
-    else:
-        try:
-            text = str(packet, "ascii")
-            print(f"received: {text}")
-        except:
-            print(f"received (raw): {packet}")
-        print(f"RSSI: {rfm.last_rssi} dB")
+    if rfm is None:
+        time.sleep(1)
+        continue
 
+    packet = rfm.receive(timeout=config.LORA_TIMEOUT)
+
+    if packet is None:
+        continue
+
+    try:
+        text = str(packet, "ascii")
+    except Exception:
+        text = packet.hex()
+
+    rssi = rfm.last_rssi
+    print(f"DATA: {text} | RSSI: {rssi}")
