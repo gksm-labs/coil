@@ -25,11 +25,23 @@ def send_to_can(mcp, ident, value):
         print(f"can error: {e}")
 
 
-def send_lora(rfm, echook_data):
-    if not echook_data:
+def send_lora(rfm, echook_data, gps=None):
+    parts = [f"{k}:{v:.2f}" for k, v in echook_data.items()]
+
+    if gps is not None and gps.has_fix:
+        if gps.latitude is not None:
+            parts.append(f"lat:{gps.latitude:.5f}")
+        if gps.longitude is not None:
+            parts.append(f"lon:{gps.longitude:.5f}")
+        if gps.speed_knots is not None:
+            parts.append(f"spd:{gps.speed_knots:.5f}")
+        if gps.satellites is not None:
+            parts.append(f"sat:{gps.satellites}")
+
+    if not parts:
         return
 
-    payload_str = ",".join([f"{k}:{v:.2f}" for k, v in echook_data.items()])
+    payload_str = ",".join(parts)
     payload_bytes = payload_str.encode("utf-8")
     rfm.send(payload_bytes)
 

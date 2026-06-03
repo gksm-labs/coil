@@ -23,5 +23,10 @@ UART_TX = board.GP12
 UART_RX = board.GP13
 UART_BAUDRATE = 115200
 
-# LoRa odosielanie
+# GPS (Modul) - UART1
+GPS_TX = board.GP4
+GPS_RX = board.GP5
+GPS_BAUDRATE = 9600
+
+# LoRa send interval
 LORA_INTERVAL = 0.3

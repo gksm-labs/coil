@@ -7,12 +7,16 @@ import protocol
 rfm = hardware.init_lora()
 mcp = hardware.init_can()
 uart = hardware.init_uart()
+gps = hardware.init_gps()
 
 uart_buffer = bytearray()
 echook_data = {}
 last_lora_tx = time.monotonic()
 
 while True:
+    if gps is not None:
+        gps.update()
+
     if uart.in_waiting > 0:
         uart_buffer.extend(uart.read(uart.in_waiting))
 

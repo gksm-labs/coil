@@ -2,6 +2,7 @@ import adafruit_rfm9x
 import busio
 import config
 import digitalio
+from adafruit_gps import GPS
 from adafruit_mcp2515 import MCP2515
 
 
@@ -36,3 +37,18 @@ def init_uart():
     uart = busio.UART(config.UART_TX, config.UART_RX, baudrate=config.UART_BAUDRATE)
     print("uart success!")
     return uart
+
+
+def init_gps():
+    try:
+        uart = busio.UART(
+            config.GPS_TX, config.GPS_RX, baudrate=config.GPS_BAUDRATE, timeout=0.1
+        )
+        gps = GPS(uart, debug=False)
+        gps.send_command(b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
+        gps.send_command(b"PMTK220,1000")
+        print("gps success!")
+        return gps
+    except Exception as e:
+        print(f"gps error: {e}")
+        return None
