@@ -50,7 +50,9 @@ def process_and_send(requests_session, data_str, rssi):
     }
 
     try:
-        resp_gw = requests_session.post(config.GATEWAY_URL, json=payload_json)
+        resp_gw = requests_session.post(
+            config.GATEWAY_URL, headers=gw_headers, json=payload_json
+        )
         if config.DEBUG:
             print(f"gateway: {resp_gw.status_code}")
         resp_gw.close()
