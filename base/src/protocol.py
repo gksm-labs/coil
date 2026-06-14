@@ -44,6 +44,11 @@ def process_and_send(requests_session, data_str, rssi):
         if config.DEBUG:
             print(f"influx: {e}")
 
+    gw_headers = {
+        "Authorization": f"Bearer {config.GATEWAY_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
     try:
         resp_gw = requests_session.post(config.GATEWAY_URL, json=payload_json)
         if config.DEBUG:

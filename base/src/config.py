@@ -26,3 +26,4 @@ INFLUX_TOKEN = "your_influx_token"
 INFLUX_MEASUREMENT = "echook_data"
 
 GATEWAY_URL = "https://router.live.mm.gksm.sk/upload"
+GATEWAY_API_KEY = ""
