@@ -2,9 +2,31 @@ import os
 from typing import Any, Dict
 
 import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import (
+    Depends,
+    FastAPI,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+    status,
+)
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 app = FastAPI()
+
+security = HTTPBearer()
+
+EXPECTED_API_KEY = os.getenv("API_KEY")
+
+
+async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    if credentials.credentials != EXPECTED_API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid key",
+        )
+
+    return credentials.credentials
 
 
 class ConnectionManager:
@@ -20,7 +42,6 @@ class ConnectionManager:
 
     async def broadcast(self, message: dict):
         print(message)
-
         for connection in self.active_connections:
             try:
                 await connection.send_json(message)
@@ -32,9 +53,8 @@ manager = ConnectionManager()
 
 
 @app.post("/upload")
-async def upload_data(payload: Dict[str, Any]):
+async def upload_data(payload: Dict[str, Any], token: str = Depends(verify_token)):
     await manager.broadcast(payload)
-
     return {"status": "ok"}
 
 
@@ -49,4 +69,4 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
