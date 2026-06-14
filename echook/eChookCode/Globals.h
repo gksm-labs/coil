@@ -86,3 +86,7 @@ volatile unsigned long lastWheelPollTime = 0;
 volatile unsigned long lastWheelInterval = 0;
 volatile bool newSpeedSignal = 0;
 volatile bool newMotorSignal = 0;
+
+float MAX_CURRENT_LIMIT = 4.0;
+float CURRENT_HYSTERESIS = 0.3;
+int current_motor_pwm = 255;

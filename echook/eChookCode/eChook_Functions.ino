@@ -99,10 +99,10 @@ void eChookRoutinesUpdate() {
 
   SerialCheck();
 
-  static unsigned long nextThrottleReadMs = millis();
-  if (millis() > nextThrottleReadMs) {  // millis() gives milliseconds since power on. If this is greater than the nextThrottleReadMs we've calculated it will run.
-    nextThrottleReadMs += 100;          // 100 ms, 10hz
-    throttleOutput = readThrottle();    // if this is being used as the input to a motor controller it is recommended to check it at a higher frequency than 4Hz
+  static unsigned long nextCurrentRegReadMs = millis();
+  if (millis() > nextCurrentRegReadMs) {
+    nextCurrentRegReadMs += 10;
+    regulateMotorCurrent();
   }
 
   static unsigned long lastShortDataSendTime = millis();              // this is reset at the start so that the calculation time does not add to the loop time
@@ -549,6 +549,26 @@ float readMotorRPM() {
   } else {
     return (0);  // Num motor magnets is 0
   }
+}
+
+void regulateMotorCurrent() {
+  float rawVoltage = analogRead(AMPS_IN_PIN);
+  float actualAmps = (rawVoltage / 1024.0) * referenceVoltage;
+  actualAmps = actualAmps * CAL_CURRENT;
+
+  if (actualAmps > MAX_CURRENT_LIMIT) {
+    current_motor_pwm -= 5;
+
+  } else if (actualAmps < (MAX_CURRENT_LIMIT - CURRENT_HYSTERESIS)) {
+    current_motor_pwm += 1;
+  }
+
+  if (current_motor_pwm > 255) current_motor_pwm = 255;
+  if (current_motor_pwm < 0) current_motor_pwm = 0;
+
+  analogWrite(MOTOR_OUT_PIN, current_motor_pwm);
+
+  throttleOutput = (float)current_motor_pwm / 2.55;
 }
 
 /**

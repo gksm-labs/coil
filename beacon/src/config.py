@@ -2,6 +2,9 @@ import board
 
 DEBUG = False
 
+LED = board.LED
+LED_INTERVAL = 0.3
+
 # LoRa pins (SPI0)
 LORA_SCK = board.GP18
 LORA_MOSI = board.GP19

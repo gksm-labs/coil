@@ -52,3 +52,9 @@ def init_gps():
     except Exception as e:
         print(f"gps error: {e}")
         return None
+
+
+def init_led():
+    led = digitalio.DigitalInOut(config.LED)
+    led.direction = digitalio.Direction.OUTPUT
+    return led

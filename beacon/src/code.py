@@ -8,10 +8,14 @@ rfm = hardware.init_lora()
 mcp = hardware.init_can()
 uart = hardware.init_uart()
 gps = hardware.init_gps()
+led = hardware.init_led()
 
 uart_buffer = bytearray()
 echook_data = {}
 last_lora_tx = time.monotonic()
+
+led_last = time.monotonic()
+led_state = False
 
 while True:
     if gps is not None:
@@ -43,8 +47,13 @@ while True:
 
     if time.monotonic() - last_lora_tx >= config.LORA_INTERVAL:
         if rfm is not None:
-            protocol.send_lora(rfm, echook_data)
+            protocol.send_lora(rfm, echook_data, gps)
 
         last_lora_tx = time.monotonic()
+
+    if time.monotonic() - led_last >= config.LED_INTERVAL:
+        led_state = not led_state
+        led.value = led_state
+        led_last = time.monotonic()
 
     time.sleep(0.01)
